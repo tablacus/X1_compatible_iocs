@@ -10,7 +10,7 @@ S-OS互換の[L-os Angeles](https://github.com/tablacus/LosAngeles)で作成し�
 
 ## ディスクイメージの作成方法
 
-1. X1版S-OS"SWORD"用の互換IOCSをダウンロードして適当なフォルダに展開してください。
+1. [X1版S-OS"SWORD"用の互換IOCSをダウンロード](https://github.com/tablacus/X1_compatible_iocs/releases/download/1.0.0.0/X1_compatible_iocs_1000.zip)して適当なフォルダに展開してください。
 
 2. [THE SENTINEL - RetroPC.NET](http://www.retropc.net/ohishi/s-os/)で入手できるX1/C/D/Cs/Ck/F/G/Twin版のS-OS"SWORD"の`binaries`の中にある`sword.bin`を 1. と同じフォルダに置いてください。
 
