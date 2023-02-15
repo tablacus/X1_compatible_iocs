@@ -14,7 +14,7 @@ S-OS互換の[L-os Angeles](https://github.com/tablacus/LosAngeles)で作成し�
 
 2. [THE SENTINEL - RetroPC.NET](http://www.retropc.net/ohishi/s-os/)で入手できるX1/C/D/Cs/Ck/F/G/Twin版のS-OS"SWORD"の`binaries`の中にある`sword.bin`を 1. と同じフォルダに置いてください。
 
-3. Windowsのコマンドラインから`msxcat.bat`を実行してください。
+3. Windowsのコマンドラインから`x1cat.bat`を実行してください。
 
 `x1sword.2d`がディスクイメージになります。X1用のエミュレータにセットして実行することができます。
 
