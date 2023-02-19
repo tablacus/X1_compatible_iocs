@@ -1,4 +1,4 @@
-# X1版S-OS"SWORD"用の互換IOCS v1.0.0.0
+# X1版S-OS"SWORD"用の互換IOCS v1.0.0.
 
 ## 概要
 
