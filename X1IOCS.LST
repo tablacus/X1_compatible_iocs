@@ -90,7 +90,7 @@
 000080 0080                         ORG $0080
 000080 0080 1C07                CTC0:   DW  INTCTCE
 000082 0082 1C07                CTC1:   DW  INTCTCE
-000084 0084 3E07                CTC2:   DW  INTCTC2
+000084 0084 1C07                CTC2:   DW  INTCTCE
 000086 0086 1C07                CTC3:   DW  INTCTCE
 000088 0088 0000                _CTC:   DW  0
                                 
@@ -259,7 +259,7 @@
        01F9                     KYBFC:
 0001F9 01F9 E5              11      PUSH    HL
 0001FA 01FA 210000          10      LD  HL,0
-0001FD 01FD 22A60E          16      LD  ($0EA6),HL
+0001FD 01FD 22A60E          16      LD  (_KEYPS),HL
 000200 0200 E1              10      POP HL
 000201 0201 C9              10      RET
                                 
@@ -302,6 +302,60 @@
 00022D 022D CD0202          17      CALL    AT_ASC
 000230 0230 C31300          10      JP  AT_PRINT
                                 
+       0233                     IOCS_INKEY:
+000233 0233 FB               4      EI
+000234 0234 E5              11      PUSH    HL
+000235 0235 2AA60E          16      LD  HL,(_KEYPS)
+000238 0238 7C               4      LD  A,H
+000239 0239 AD               4      XOR L
+00023A 023A 2809            12      JR  Z,INKEY1
+00023C 023C 7C               4      LD  A,H
+00023D 023D 3C               4      INC A
+00023E 023E 32A70E          13      LD  (_KEYPS+1),A
+000241 0241 6F               4      LD  L,A
+000242 0242 2606             7      LD  H,KEYBF/256
+000244 0244 7E               7      LD  A,(HL)
+       0245                     INKEY1:
+000245 0245 E1              10      POP HL
+000246 0246 B7               4      OR  A
+000247 0247 C9              10      RET
+                                
+       0248                     FLGET0:
+000248 0248 CB5D             8      BIT 3,L
+00024A 024A 2868            12      JR  Z,FLGET1
+00024C 024C 3A2E00          13      LD  A,(_KEYD)
+00024F 024F B7               4      OR  A
+000250 0250 2862            12      JR  Z,FLGET1
+                                
+000252 0252 3E1A             7      LD  A,01AH
+000254 0254 325802          13      LD  (FLGET_SWC),A
+       0257                     FLGET2:
+000257 0257 3E1A             7      LD  A,1AH
+       0258                     FLGET_SWC   EQU $-1
+000259 0259 B7               4      OR  A
+00025A 025A 2866            12      JR  Z,FLGETR
+00025C 025C DB01            11      IN  A,(01H)
+00025E 025E 87               4      ADD A,A
+00025F 025F 30F6            12      JR  NC,FLGET2
+       0261                     FLGET3:
+000261 0261 3A5802          13      LD  A,(FLGET_SWC)
+000264 0264 B7               4      OR  A
+000265 0265 285B            12      JR  Z,FLGETR
+000267 0267 DB01            11      IN  A,(01H)
+000269 0269 87               4      ADD A,A
+00026A 026A 38F5            12      JR  C,FLGET3
+                                
+00026C 026C 3E00             7      LD  A,0
+       026D                     KEYREPEAT_SWC   EQU $-1
+00026E 026E B7               4      OR  A
+00026F 026F 2806            12      JR  Z,FLGET4
+000271 0271 3D               4      DEC A
+000272 0272 326D02          13      LD  (KEYREPEAT_SWC),A
+000275 0275 18E0            12      JR  FLGET2
+       0277                     FLGET4:
+000277 0277 3A2E00          13      LD  A,(_KEYD)
+00027A 027A C3C802          10      JP  FLGETE
+                                
 0002AA 02AA                         ORG $02AA
        02AA                     AT_FLGET:
 0002AA 02AA C5              11      PUSH    BC
@@ -318,31 +372,15 @@
 0002BD 02BD ED68            12      IN  L,(C)
 0002BF 02BF B5               4      OR  L
 0002C0 02C0 ED79            12      OUT (C),A
-0002C2 02C2 CDCC02          17      CALL    IOCS_INKEY
-0002C5 02C5 28ED            12      JR  Z,FLGET1
-0002C7 02C7 ED61            12      OUT (C),H
-0002C9 02C9 E1              10      POP HL
-0002CA 02CA C1              10      POP BC
-0002CB 02CB C9              10      RET
+       02C2                     FLGETR:
+0002C2 02C2 CD3302          17      CALL    IOCS_INKEY
+0002C5 02C5 CA4802          10      JP  Z,FLGET0
+       02C8                     FLGETE:
+0002C8 02C8 ED61            12      OUT (C),H
+0002CA 02CA E1              10      POP HL
+0002CB 02CB C1              10      POP BC
+0002CC 02CC C9              10      RET
                                 
-       02CC                     IOCS_INKEY:
-0002CC 02CC FB               4      EI
-0002CD 02CD E5              11      PUSH    HL
-0002CE 02CE 2AA60E          16      LD  HL,(_KEYPS)
-0002D1 02D1 7C               4      LD  A,H
-0002D2 02D2 AD               4      XOR L
-0002D3 02D3 2809            12      JR  Z,INKEY1
-0002D5 02D5 7C               4      LD  A,H
-0002D6 02D6 3C               4      INC A
-0002D7 02D7 32A70E          13      LD  (_KEYPS+1),A
-0002DA 02DA 6F               4      LD  L,A
-0002DB 02DB 2606             7      LD  H,KEYBF/256
-0002DD 02DD 7E               7      LD  A,(HL)
-       02DE                     INKEY1:
-0002DE 02DE E1              10      POP HL
-0002DF 02DF B7               4      OR  A
-0002E0 02E0 C9              10      RET
-                                    
 0002E1 02E1                         ORG $02E1
        02E1                     AT_INKEY:
 0002E1 02E1 3A2E00          13      LD  A,(_KEYD)
@@ -561,7 +599,7 @@
                                 
 0003E3 03E3                         ORG $03E3
        03E3                     AT_KYBFS:
-0003E3 03E3 C39807          10      JP  KEYBS
+0003E3 03E3 C35907          10      JP  KEYBS
 0003E6 03E6 C9              10      RET
                                 
 0004A3 04A3                         ORG $04A3
@@ -762,7 +800,7 @@
 00072F 072F 2808            12      JR  Z,RESET
        0731                     SCEXE:
 000731 0731 222E00          16      LD  (_KEYD),HL
-000734 0734 CD6507          17      CALL    KEYSET1
+000734 0734 CD3E07          17      CALL    KEYSET1
                                 
 000737 0737 C1              10      POP BC
 000738 0738 C9              10      RET
@@ -772,121 +810,75 @@
 00073B 073B D300            11      OUT (0),A
 00073D 073D C7              12      RST 0
                                 
-       073E                     INTCTC2:
+       073E                     KEYSET1:
 00073E 073E F5              11      PUSH    AF
-00073F 073F 3E00             7  INTCPAT:LD  A,000H
-000741 0741 3D               4      DEC A
-000742 0742 324007          13      LD  (INTCPAT+1),A
-000745 0745 20D4            12      JR  NZ,INTPE2
+00073F 073F AF               4      XOR A
+000740 0740 325802          13      LD  (FLGET_SWC),A
+000743 0743 F1              10      POP AF
+000744 0744 B7               4      OR  A
+000745 0745 C8              11      RET Z
                                 
-000747 0747 3A2E00          13      LD  A,(_KEYD)
-00074A 074A B7               4      OR  A
-00074B 074B 28CE            12      JR  Z,INTPE2
-       074D                     KEYSET0:
-00074D 074D E5              11      PUSH    HL
-00074E 074E 2AA60E          16      LD  HL,(_KEYPS)
-000751 0751 7C               4      LD  A,H
-000752 0752 AD               4      XOR L
-000753 0753 2006            12      JR  NZ,INTC2A
+000746 0746 CB6C             8      BIT 5,H
+000748 0748 2806            12      JR  Z,KEYSET
+00074A 074A 3AA90E          13      LD  A,(_KEYSP+1)
+00074D 074D 326D02          13      LD  (KEYREPEAT_SWC),A
+       0750                     KEYSET:
+000750 0750 7D               4      LD  A,L
+000751 0751 CB7C             8      BIT 7,H
+000753 0753 CC7707          17      CALL    Z,FKEY
+000756 0756 CB74             8      BIT 6,H
+000758 0758 C0              11      RET NZ
+       0759                     KEYBS:
+000759 0759 B7               4      OR  A
+00075A 075A C8              11      RET Z
+       075B                     KEYBS1:
+00075B 075B FE03             7      CP  3
+00075D 075D CCF901          17      CALL    Z,KYBFC
+000760 0760 E5              11      PUSH    HL
+000761 0761 F5              11      PUSH    AF
+000762 0762 2AA60E          16      LD  HL,(_KEYPS)
+000765 0765 2C               4      INC L
+000766 0766 7D               4      LD  A,L
+000767 0767 BC               4      CP  H
+000768 0768 2809            12      JR  Z,POP_AF_HL_SCF_RET
+00076A 076A 32A60E          13      LD  (_KEYPS),A
+00076D 076D 2606             7      LD  H,KEYBF/256
+00076F 076F F1              10      POP AF
+000770 0770 77               7      LD  (HL),A
+000771 0771 E1              10      POP HL
+000772 0772 C9              10      RET
                                 
-000755 0755 2A2E00          16      LD  HL,(_KEYD)
-000758 0758 CD8F07          17      CALL    KEYSET
-       075B                     INTC2A:
-00075B 075B 3AA80E          13      LD  A,(_KEYSP)
-00075E 075E E60F             7      AND 00FH
-000760 0760 324007          13      LD  (INTCPAT+1),A
+       0773                     POP_AF_HL_SCF_RET:
+000773 0773 F1              10      POP AF
+000774 0774 E1              10      POP HL
+000775 0775 37               4      SCF
+000776 0776 C9              10      RET
                                 
-000763 0763 18B5            12      JR  INTPE
-                                
-       0765                     KEYSET1:
-000765 0765 CB6C             8      BIT 5,H
-000767 0767 F5              11      PUSH    AF
-000768 0768 ED4B8800        20      LD  BC,(_CTC)
-00076C 076C 78               4      LD  A,B
-00076D 076D B1               4      OR  C
-00076E 076E 2006            12      JR  NZ,KEYS10E
-                                
-000770 0770 F1              10      POP AF
-000771 0771 201C            12      JR  NZ,KEYSET
-000773 0773 F5              11      PUSH    AF
-000774 0774 18D7            12      JR  KEYSET0
-       0776                     KEYS10E:
-000776 0776 F1              10      POP AF
-000777 0777 C8              11      RET Z
-000778 0778 F5              11      PUSH    AF
-000779 0779 3E03             7      LD  A,3     ;CTC STOP
-00077B 077B ED79            12      OUT (C),A
-00077D 077D F1              10      POP AF
-                                
-00077E 077E B7               4      OR  A
-00077F 077F C8              11      RET Z
-                                
-000780 0780 E5              11      PUSH    HL
-000781 0781 2AA80E          16      LD  HL,(_KEYSP)
-000784 0784 3EA7             7      LD  A,0A7H
-000786 0786 ED79            12      OUT (C),A
-000788 0788 ED69            12      OUT (C),L
-00078A 078A 7C               4      LD  A,H
-00078B 078B 324007          13      LD  (INTCPAT+1),A
-00078E 078E E1              10      POP HL
-                                
-       078F                     KEYSET:
-00078F 078F 7D               4      LD  A,L
-000790 0790 CB7C             8      BIT 7,H
-000792 0792 CCB607          17      CALL    Z,FKEY
-000795 0795 CB74             8      BIT 6,H
-000797 0797 C0              11      RET NZ
-       0798                     KEYBS:
-000798 0798 B7               4      OR  A
-000799 0799 C8              11      RET Z
-       079A                     KEYBS1:
-00079A 079A FE03             7      CP  3
-00079C 079C CCF901          17      CALL    Z,KYBFC
-00079F 079F E5              11      PUSH    HL
-0007A0 07A0 F5              11      PUSH    AF
-0007A1 07A1 2AA60E          16      LD  HL,(_KEYPS)
-0007A4 07A4 2C               4      INC L
-0007A5 07A5 7D               4      LD  A,L
-0007A6 07A6 BC               4      CP  H
-0007A7 07A7 2809            12      JR  Z,POP_AF_HL_SCF_RET
-0007A9 07A9 32A60E          13      LD  (_KEYPS),A
-0007AC 07AC 2606             7      LD  H,KEYBF/256
-0007AE 07AE F1              10      POP AF
-0007AF 07AF 77               7      LD  (HL),A
-0007B0 07B0 E1              10      POP HL
-0007B1 07B1 C9              10      RET
-                                
-       07B2                     POP_AF_HL_SCF_RET:
-0007B2 07B2 F1              10      POP AF
-0007B3 07B3 E1              10      POP HL
-0007B4 07B4 37               4      SCF
-0007B5 07B5 C9              10      RET
-                                
-       07B6                     FKEY:
-0007B6 07B6 CB75             8      BIT 6,L
-0007B8 07B8 C8              11      RET Z
-0007B9 07B9 3E1B             7      LD  A,01BH
-0007BB 07BB CD9A07          17      CALL    KEYBS1
-0007BE 07BE 7D               4      LD  A,L
-0007BF 07BF C6AF             7      ADD A,020H-'q'
-0007C1 07C1 CB7D             8      BIT 7,L
-0007C3 07C3 C8              11      RET Z
-0007C4 07C4 2E50             7      LD  L,'P'
-0007C6 07C6 D690             7      SUB 0E1H+020H-'q'
-0007C8 07C8 2810            12      JR  Z,KEYBSL
-0007CA 07CA 2C               4      INC L
-0007CB 07CB 3D               4      DEC A
-0007CC 07CC 280C            12      JR  Z,KEYBSL
-0007CE 07CE 2C               4      INC L
-0007CF 07CF D609             7      SUB 0EBH-0E2H
-0007D1 07D1 2807            12      JR  Z,KEYBSL
-0007D3 07D3 2E43             7      LD  L,'C'
-0007D5 07D5 3D               4      DEC A
-0007D6 07D6 2802            12      JR  Z,KEYBSL
-0007D8 07D8 2E58             7      LD  L,'X'
-       07DA                     KEYBSL:
-0007DA 07DA 7D               4      LD  A,L
-0007DB 07DB 18BD            12      JR  KEYBS1
+       0777                     FKEY:
+000777 0777 CB75             8      BIT 6,L
+000779 0779 C8              11      RET Z
+00077A 077A 3E1B             7      LD  A,01BH
+00077C 077C CD5B07          17      CALL    KEYBS1
+00077F 077F 7D               4      LD  A,L
+000780 0780 C6AF             7      ADD A,020H-'q'
+000782 0782 CB7D             8      BIT 7,L
+000784 0784 C8              11      RET Z
+000785 0785 2E50             7      LD  L,'P'
+000787 0787 D690             7      SUB 0E1H+020H-'q'
+000789 0789 2810            12      JR  Z,KEYBSL
+00078B 078B 2C               4      INC L
+00078C 078C 3D               4      DEC A
+00078D 078D 280C            12      JR  Z,KEYBSL
+00078F 078F 2C               4      INC L
+000790 0790 D609             7      SUB 0EBH-0E2H
+000792 0792 2807            12      JR  Z,KEYBSL
+000794 0794 2E43             7      LD  L,'C'
+000796 0796 3D               4      DEC A
+000797 0797 2802            12      JR  Z,KEYBSL
+000799 0799 2E58             7      LD  L,'X'
+       079B                     KEYBSL:
+00079B 079B 7D               4      LD  A,L
+00079C 079C 18BD            12      JR  KEYBS1
                                 
 0007F7 07F7                         ORG $07F7
        07F7                     AT_BELL:
@@ -1557,7 +1549,7 @@
 000E11 0E11 C9              10      RET
                                 
        0E12                     IOCS_GETL:
-000E12 0E12 ED537C0E        20      LD  (KBPAT+1),DE
+000E12 0E12 ED53740E        20      LD  (KBPAT+1),DE
 000E16 0E16 C5              11      PUSH    BC
 000E17 0E17 E5              11      PUSH    HL
                                 
@@ -1569,72 +1561,77 @@
 000E21 0E21 281D            12      JR  Z,GETL1OK
 000E23 0E23 FE09             7      CP  9
 000E25 0E25 200A            12      JR  NZ,GETL1V
-000E27 0E27 ED5B7C0E        20      LD  DE,(KBPAT+1)
+000E27 0E27 ED5B740E        20      LD  DE,(KBPAT+1)
 000E2B 0E2B 13               6      INC DE
 000E2C 0E2C CD640B          17      CALL    AT_MSX
 000E2F 0E2F 18EB            12      JR  GETL1
        0E31                     GETL1V:
 000E31 0E31 CD4700          17      CALL    AT_BRKEY1
-000E34 0E34 2850            12      JR  Z,GETL_CANCEL
+000E34 0E34 2848            12      JR  Z,GETL_CANCEL
 000E36 0E36 F5              11      PUSH    AF
 000E37 0E37 CDE90C          17      CALL    CTRL01
 000E3A 0E3A F1              10      POP AF
 000E3B 0E3B CD960B          17      CALL    PRINT
 000E3E 0E3E 18DC            12      JR  GETL1
        0E40                     GETL1OK:
-000E40 0E40 ED5B7C0E        20      LD  DE,(KBPAT+1)
-000E44 0E44 3AFC12          13      LD  A,(_CRTCD+1)
-000E47 0E47 47               4      LD  B,A
-000E48 0E48 CD6905          17      CALL    ZERO_MEMORY_DE
+000E40 0E40 CD920E          17      CALL    CLEAR_GETL_BUFFER
                                 
-000E4B 0E4B D1              10      POP DE
-000E4C 0E4C CD1109          17      CALL    _POS
-000E4F 0E4F 2E00             7      LD  L,0
-000E51 0E51 3AFC12          13      LD  A,(_CRTCD+1)
-000E54 0E54 95               4      SUB L
-000E55 0E55 57               4      LD  D,A
-000E56 0E56 CD5505          17      CALL    LOC1
-000E59 0E59 4D               4      LD  C,L
-000E5A 0E5A 7C               4      LD  A,H
-000E5B 0E5B F630             7      OR  030H
-000E5D 0E5D 47               4      LD  B,A
-000E5E 0E5E 5A               4      LD  E,D
-000E5F 0E5F 2A7C0E          16      LD  HL,(KBPAT+1)
-       0E62                     GETL2:
-000E62 0E62 CDF601          17      CALL    AT_SCRN
-000E65 0E65 03               6      INC BC
-000E66 0E66 77               7      LD  (HL),A
-000E67 0E67 23               6      INC HL
-000E68 0E68 1D               4      DEC E
-000E69 0E69 20F7            12      JR  NZ,GETL2
+000E43 0E43 D1              10      POP DE
+000E44 0E44 CD1109          17      CALL    _POS
+000E47 0E47 2E00             7      LD  L,0
+000E49 0E49 3AFC12          13      LD  A,(_CRTCD+1)
+000E4C 0E4C 95               4      SUB L
+000E4D 0E4D 57               4      LD  D,A
+000E4E 0E4E CD5505          17      CALL    LOC1
+000E51 0E51 4D               4      LD  C,L
+000E52 0E52 7C               4      LD  A,H
+000E53 0E53 F630             7      OR  030H
+000E55 0E55 47               4      LD  B,A
+000E56 0E56 5A               4      LD  E,D
+000E57 0E57 2A740E          16      LD  HL,(KBPAT+1)
+       0E5A                     GETL2:
+000E5A 0E5A CDF601          17      CALL    AT_SCRN
+000E5D 0E5D 03               6      INC BC
+000E5E 0E5E 77               7      LD  (HL),A
+000E5F 0E5F 23               6      INC HL
+000E60 0E60 1D               4      DEC E
+000E61 0E61 20F7            12      JR  NZ,GETL2
                                 
-000E6B 0E6B CD830B          17      CALL    AT_LTNL
-       0E6E                     GETL3:
-000E6E 0E6E 2B               6      DEC HL
-000E6F 0E6F 7E               7      LD  A,(HL)
-000E70 0E70 FE21             7      CP  021H
-000E72 0E72 3005            12      JR  NC,GETL_END
-000E74 0E74 AF               4      XOR A
-000E75 0E75 77               7      LD  (HL),A
-000E76 0E76 15               4      DEC D
-000E77 0E77 20F5            12      JR  NZ,GETL3
-       0E79                     GETL_END:
-000E79 0E79 E1              10      POP HL
-000E7A 0E7A C1              10      POP BC
-000E7B 0E7B 110000          10  KBPAT:  LD  DE,0
-000E7E 0E7E 1A               7      LD  A,(DE)
-000E7F 0E7F FE23             7      CP  '#'
-000E81 0E81 2827            12      JR  Z,GETL_CAP
-000E83 0E83 C3D10B          10      JP  INSOFF
+000E63 0E63 CD830B          17      CALL    AT_LTNL
+       0E66                     GETL3:
+000E66 0E66 2B               6      DEC HL
+000E67 0E67 7E               7      LD  A,(HL)
+000E68 0E68 FE21             7      CP  021H
+000E6A 0E6A 3005            12      JR  NC,GETL_END
+000E6C 0E6C AF               4      XOR A
+000E6D 0E6D 77               7      LD  (HL),A
+000E6E 0E6E 15               4      DEC D
+000E6F 0E6F 20F5            12      JR  NZ,GETL3
+       0E71                     GETL_END:
+000E71 0E71 E1              10      POP HL
+000E72 0E72 C1              10      POP BC
+000E73 0E73 110000          10  KBPAT:  LD  DE,0
+000E76 0E76 1A               7      LD  A,(DE)
+000E77 0E77 FE23             7      CP  '#'
+000E79 0E79 282F            12      JR  Z,GETL_CAP
+000E7B 0E7B C3D10B          10      JP  INSOFF
                                 
-       0E86                     GETL_CANCEL:
-000E86 0E86 CD830B          17      CALL    AT_LTNL
-000E89 0E89 37               4      SCF
-000E8A 0E8A E1              10      POP HL
-000E8B 0E8B C3D10B          10      JP  INSOFF
+       0E7E                     GETL_CANCEL:
+000E7E 0E7E CD920E          17      CALL    CLEAR_GETL_BUFFER
+000E81 0E81 CD830B          17      CALL    AT_LTNL
+000E84 0E84 37               4      SCF
+000E85 0E85 E1              10      POP HL
+000E86 0E86 E1              10      POP HL
+000E87 0E87 C1              10      POP BC
+000E88 0E88 C3D10B          10      JP  INSOFF
                                 
 000E90 0E90                         ORG $0E90
 000E90 0E90 0000                    DW  0
+       0E92                     CLEAR_GETL_BUFFER:
+000E92 0E92 ED5B740E        20      LD  DE,(KBPAT+1)
+000E96 0E96 3AFC12          13      LD  A,(_CRTCD+1)
+000E99 0E99 47               4      LD  B,A
+000E9A 0E9A C36905          10      JP  ZERO_MEMORY_DE
                                 
 000EA5 0EA5                         ORG $0EA5
 000EA5 0EA5 00                      DB  0
