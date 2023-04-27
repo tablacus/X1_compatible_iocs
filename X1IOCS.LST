@@ -320,42 +320,6 @@
 000246 0246 B7               4      OR  A
 000247 0247 C9              10      RET
                                 
-       0248                     FLGET0:
-000248 0248 CB5D             8      BIT 3,L
-00024A 024A 2868            12      JR  Z,FLGET1
-00024C 024C 3A2E00          13      LD  A,(_KEYD)
-00024F 024F B7               4      OR  A
-000250 0250 2862            12      JR  Z,FLGET1
-                                
-000252 0252 3E1A             7      LD  A,01AH
-000254 0254 325802          13      LD  (FLGET_SWC),A
-       0257                     FLGET2:
-000257 0257 3E1A             7      LD  A,1AH
-       0258                     FLGET_SWC   EQU $-1
-000259 0259 B7               4      OR  A
-00025A 025A 2866            12      JR  Z,FLGETR
-00025C 025C DB01            11      IN  A,(01H)
-00025E 025E 87               4      ADD A,A
-00025F 025F 30F6            12      JR  NC,FLGET2
-       0261                     FLGET3:
-000261 0261 3A5802          13      LD  A,(FLGET_SWC)
-000264 0264 B7               4      OR  A
-000265 0265 285B            12      JR  Z,FLGETR
-000267 0267 DB01            11      IN  A,(01H)
-000269 0269 87               4      ADD A,A
-00026A 026A 38F5            12      JR  C,FLGET3
-                                
-00026C 026C 3E00             7      LD  A,0
-       026D                     KEYREPEAT_SWC   EQU $-1
-00026E 026E B7               4      OR  A
-00026F 026F 2806            12      JR  Z,FLGET4
-000271 0271 3D               4      DEC A
-000272 0272 326D02          13      LD  (KEYREPEAT_SWC),A
-000275 0275 18E0            12      JR  FLGET2
-       0277                     FLGET4:
-000277 0277 3A2E00          13      LD  A,(_KEYD)
-00027A 027A C3C802          10      JP  FLGETE
-                                
 0002AA 02AA                         ORG $02AA
        02AA                     AT_FLGET:
 0002AA 02AA C5              11      PUSH    BC
@@ -374,12 +338,12 @@
 0002C0 02C0 ED79            12      OUT (C),A
        02C2                     FLGETR:
 0002C2 02C2 CD3302          17      CALL    IOCS_INKEY
-0002C5 02C5 CA4802          10      JP  Z,FLGET0
-       02C8                     FLGETE:
-0002C8 02C8 ED61            12      OUT (C),H
-0002CA 02CA E1              10      POP HL
-0002CB 02CB C1              10      POP BC
-0002CC 02CC C9              10      RET
+0002C5 02C5 28FB            12      JR  Z,FLGETR
+       02C7                     FLGETE:
+0002C7 02C7 ED61            12      OUT (C),H
+0002C9 02C9 E1              10      POP HL
+0002CA 02CA C1              10      POP BC
+0002CB 02CB C9              10      RET
                                 
 0002E1 02E1                         ORG $02E1
        02E1                     AT_INKEY:
@@ -599,7 +563,7 @@
                                 
 0003E3 03E3                         ORG $03E3
        03E3                     AT_KYBFS:
-0003E3 03E3 C35907          10      JP  KEYBS
+0003E3 03E3 C35007          10      JP  KEYBS
 0003E6 03E6 C9              10      RET
                                 
 0004A3 04A3                         ORG $04A3
@@ -811,74 +775,69 @@
 00073D 073D C7              12      RST 0
                                 
        073E                     KEYSET1:
-00073E 073E F5              11      PUSH    AF
-00073F 073F AF               4      XOR A
-000740 0740 325802          13      LD  (FLGET_SWC),A
-000743 0743 F1              10      POP AF
-000744 0744 B7               4      OR  A
-000745 0745 C8              11      RET Z
+00073E 073E B7               4      OR  A
+00073F 073F C8              11      RET Z
                                 
-000746 0746 CB6C             8      BIT 5,H
-000748 0748 2806            12      JR  Z,KEYSET
-00074A 074A 3AA90E          13      LD  A,(_KEYSP+1)
-00074D 074D 326D02          13      LD  (KEYREPEAT_SWC),A
-       0750                     KEYSET:
-000750 0750 7D               4      LD  A,L
-000751 0751 CB7C             8      BIT 7,H
-000753 0753 CC7707          17      CALL    Z,FKEY
-000756 0756 CB74             8      BIT 6,H
-000758 0758 C0              11      RET NZ
-       0759                     KEYBS:
-000759 0759 B7               4      OR  A
-00075A 075A C8              11      RET Z
-       075B                     KEYBS1:
-00075B 075B FE03             7      CP  3
-00075D 075D CCF901          17      CALL    Z,KYBFC
-000760 0760 E5              11      PUSH    HL
-000761 0761 F5              11      PUSH    AF
-000762 0762 2AA60E          16      LD  HL,(_KEYPS)
-000765 0765 2C               4      INC L
-000766 0766 7D               4      LD  A,L
-000767 0767 BC               4      CP  H
-000768 0768 2809            12      JR  Z,POP_AF_HL_SCF_RET
-00076A 076A 32A60E          13      LD  (_KEYPS),A
-00076D 076D 2606             7      LD  H,KEYBF/256
-00076F 076F F1              10      POP AF
-000770 0770 77               7      LD  (HL),A
-000771 0771 E1              10      POP HL
-000772 0772 C9              10      RET
+000740 0740 CB6C             8      BIT 5,H
+000742 0742 2803            12      JR  Z,KEYSET
+000744 0744 3AA90E          13      LD  A,(_KEYSP+1)
+       0747                     KEYSET:
+000747 0747 7D               4      LD  A,L
+000748 0748 CB7C             8      BIT 7,H
+00074A 074A CC6E07          17      CALL    Z,FKEY
+00074D 074D CB74             8      BIT 6,H
+00074F 074F C0              11      RET NZ
+       0750                     KEYBS:
+000750 0750 B7               4      OR  A
+000751 0751 C8              11      RET Z
+       0752                     KEYBS1:
+000752 0752 FE03             7      CP  3
+000754 0754 CCF901          17      CALL    Z,KYBFC
+000757 0757 E5              11      PUSH    HL
+000758 0758 F5              11      PUSH    AF
+000759 0759 2AA60E          16      LD  HL,(_KEYPS)
+00075C 075C 2C               4      INC L
+00075D 075D 7D               4      LD  A,L
+00075E 075E BC               4      CP  H
+00075F 075F 2809            12      JR  Z,POP_AF_HL_SCF_RET
+000761 0761 32A60E          13      LD  (_KEYPS),A
+000764 0764 2606             7      LD  H,KEYBF/256
+000766 0766 F1              10      POP AF
+000767 0767 77               7      LD  (HL),A
+000768 0768 E1              10      POP HL
+000769 0769 C9              10      RET
                                 
-       0773                     POP_AF_HL_SCF_RET:
-000773 0773 F1              10      POP AF
-000774 0774 E1              10      POP HL
-000775 0775 37               4      SCF
-000776 0776 C9              10      RET
+       076A                     POP_AF_HL_SCF_RET:
+00076A 076A F1              10      POP AF
+00076B 076B E1              10      POP HL
+00076C 076C 37               4      SCF
+00076D 076D C9              10      RET
                                 
-       0777                     FKEY:
-000777 0777 CB75             8      BIT 6,L
-000779 0779 C8              11      RET Z
-00077A 077A 3E1B             7      LD  A,01BH
-00077C 077C CD5B07          17      CALL    KEYBS1
-00077F 077F 7D               4      LD  A,L
-000780 0780 C6AF             7      ADD A,020H-'q'
-000782 0782 CB7D             8      BIT 7,L
-000784 0784 C8              11      RET Z
-000785 0785 2E50             7      LD  L,'P'
-000787 0787 D690             7      SUB 0E1H+020H-'q'
-000789 0789 2810            12      JR  Z,KEYBSL
-00078B 078B 2C               4      INC L
-00078C 078C 3D               4      DEC A
-00078D 078D 280C            12      JR  Z,KEYBSL
-00078F 078F 2C               4      INC L
-000790 0790 D609             7      SUB 0EBH-0E2H
-000792 0792 2807            12      JR  Z,KEYBSL
-000794 0794 2E43             7      LD  L,'C'
-000796 0796 3D               4      DEC A
-000797 0797 2802            12      JR  Z,KEYBSL
-000799 0799 2E58             7      LD  L,'X'
-       079B                     KEYBSL:
-00079B 079B 7D               4      LD  A,L
-00079C 079C 18BD            12      JR  KEYBS1
+       076E                     FKEY:
+00076E 076E CB75             8      BIT 6,L
+000770 0770 C8              11      RET Z
+000771 0771 3E1B             7      LD  A,01BH
+000773 0773 CD5207          17      CALL    KEYBS1
+000776 0776 7D               4      LD  A,L
+000777 0777 C6AF             7      ADD A,020H-'q'
+000779 0779 CB7D             8      BIT 7,L
+00077B 077B C8              11      RET Z
+00077C 077C 2E50             7      LD  L,'P'
+00077E 077E D690             7      SUB 0E1H+020H-'q'
+000780 0780 2810            12      JR  Z,KEYBSL
+000782 0782 2C               4      INC L
+000783 0783 3D               4      DEC A
+000784 0784 280C            12      JR  Z,KEYBSL
+000786 0786 2C               4      INC L
+000787 0787 D609             7      SUB 0EBH-0E2H
+000789 0789 2807            12      JR  Z,KEYBSL
+00078B 078B 2E43             7      LD  L,'C'
+00078D 078D 3D               4      DEC A
+00078E 078E 2802            12      JR  Z,KEYBSL
+000790 0790 2E58             7      LD  L,'X'
+       0792                     KEYBSL:
+000792 0792 7D               4      LD  A,L
+000793 0793 18BD            12      JR  KEYBS1
                                 
 0007F7 07F7                         ORG $07F7
        07F7                     AT_BELL:
@@ -2069,7 +2028,7 @@
 00131A 131A 20                      DB  020H
                                 
        131B                     _C8025H:
-00131B 131B 6B5059881B01191A        DB  06BH,050H,059H,088H,01BH,001H,019H,01AH
+00131B 131B 6B5059881B00191A        DB  06BH,050H,059H,088H,01BH,000H,019H,01AH
 001323 1323 000F                    DB  000H,00FH
 001325 1325 30F8B0FF                DW  0-80*LINE,0-80
 001329 1329 0C                      DB  00CH
@@ -2083,7 +2042,7 @@
 00133A 133A 20                      DB  020H
                                 
        133B                     _C4025H:
-00133B 133B 35282D841B01191A        DB  035H,028H,02DH,084H,01BH,001H,019H,01AH
+00133B 133B 35282D841B00191A        DB  035H,028H,02DH,084H,01BH,000H,019H,01AH
 001343 1343 000F                    DB  000H,00FH
 001345 1345 18FCD8FF                DW  0-40*LINE,0-40
 001349 1349 0D                      DB  00DH
