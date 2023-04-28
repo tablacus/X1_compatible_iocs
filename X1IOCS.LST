@@ -1578,11 +1578,12 @@
        0E7E                     GETL_CANCEL:
 000E7E 0E7E CD920E          17      CALL    CLEAR_GETL_BUFFER
 000E81 0E81 CD830B          17      CALL    AT_LTNL
-000E84 0E84 37               4      SCF
+000E84 0E84 E1              10      POP HL
 000E85 0E85 E1              10      POP HL
-000E86 0E86 E1              10      POP HL
-000E87 0E87 C1              10      POP BC
-000E88 0E88 C3D10B          10      JP  INSOFF
+000E86 0E86 C1              10      POP BC
+000E87 0E87 CDD10B          17      CALL    INSOFF
+000E8A 0E8A 37               4      SCF
+000E8B 0E8B C9              10      RET
                                 
 000E90 0E90                         ORG $0E90
 000E90 0E90 0000                    DW  0
