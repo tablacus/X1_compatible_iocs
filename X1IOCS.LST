@@ -1,4 +1,4 @@
-                                ;*** AILZ80ASM *** Z-80 Assembler, version 1.0.0.0, LST:Full:4
+                                ;*** AILZ80ASM *** Z-80 Assembler, version 1.0.31.0, LST:Full:4
                                 ;   X1IOCS for S-OS Sword
                                 ;
                                 
@@ -67,14 +67,9 @@
        003B                     AT_JP_HL:
 00003B 003B E9               4      JP  (HL)
                                 
-000044 0044                         ORG $0044
-       0044                     AT_BRKEY:
-000044 0044 CDE101          17      CALL    GETKY
-       0047                     AT_BRKEY1:
-000047 0047 FE1B             7      CP  $1B
-000049 0049 C8              11      RET Z
-00004A 004A FE03             7      CP  3
-00004C 004C C9              10      RET
+00004A 004A                         ORG $004A
+       004A                     AT_BRKEY:
+00004A 004A C3F70C          10      JP  IOCS_BRKEY
                                 
 00004D 004D                         ORG $004D
        004D                     AT_WIDCH:
@@ -99,7 +94,7 @@
 0000FA 00FA F3               4      DI
 0000FB 00FB ED5E             8      IM  2
 0000FD 00FD 310000          10      LD  SP,STACK
-000100 0100 21F70C          10      LD  HL,BIOS_SRC
+000100 0100 215A14          10      LD  HL,BIOS_SRC
 000103 0103 1151FF          10      LD  DE,BIOS_DEST
 000106 0106 010E00          10      LD  BC,BIOS_END-BIOS_DEST
 000109 0109 EDB0                    LDIR
@@ -1475,21 +1470,13 @@
        0CF6                     CTRL1B:
 000CF6 0CF6 C9              10      RET
                                 
-       0CF7                     BIOS_SRC:
-000CF7 FF51                         ORG $FF00+81,BIOS_SRC
-                                
-       FF51                     BIOS_DEST:
-       FF51                     BIOS1:
-000CF7 FF51 CD59FF          17      CALL    BIOS3
-000CFA FF54 061E             7      LD  B,01EH
-000CFC FF56 ED79            12      OUT (C),A
-000CFE FF58 C9              10      RET
-       FF59                     BIOS3:
-000CFF FF59 C5              11      PUSH    BC
-000D00 FF5A 061D             7      LD  B,01DH
-000D02 FF5C ED79            12      OUT (C),A
-000D04 FF5E C9              10      RET
-       FF5F                     BIOS_END:
+       0CF7                     IOCS_BRKEY:
+000CF7 0CF7 CDE101          17      CALL    GETKY
+       0CFA                     IOCS_BRKEY1:
+000CFA 0CFA FE1B             7      CP  $1B
+000CFC 0CFC C8              11      RET Z
+000CFD 0CFD FE03             7      CP  3
+000CFF 0CFF C9              10      RET
                                 
 000DFE 0DFE                         ORG $0DFE
        0DFE                     AT_COMOUT:
@@ -1525,7 +1512,7 @@
 000E2C 0E2C CD640B          17      CALL    AT_MSX
 000E2F 0E2F 18EB            12      JR  GETL1
        0E31                     GETL1V:
-000E31 0E31 CD4700          17      CALL    AT_BRKEY1
+000E31 0E31 CDFA0C          17      CALL    IOCS_BRKEY1
 000E34 0E34 2848            12      JR  Z,GETL_CANCEL
 000E36 0E36 F5              11      PUSH    AF
 000E37 0E37 CDE90C          17      CALL    CTRL01
@@ -2071,6 +2058,23 @@
 001456 1456 D0              11      RET NC
 001457 1457 D620             7      SUB $20
 001459 1459 C9              10      RET
+                                
+       145A                     BIOS_SRC:
+00145A FF51                         ORG $FF00+81,BIOS_SRC
+                                
+       FF51                     BIOS_DEST:
+       FF51                     BIOS1:
+00145A FF51 CD59FF          17      CALL    BIOS3
+00145D FF54 061E             7      LD  B,01EH
+00145F FF56 ED79            12      OUT (C),A
+001461 FF58 C9              10      RET
+       FF59                     BIOS3:
+001462 FF59 C5              11      PUSH    BC
+001463 FF5A 061D             7      LD  B,01DH
+001465 FF5C ED79            12      OUT (C),A
+001467 FF5E C9              10      RET
+       FF5F                     BIOS_END:
+                                
                                 ;
                                 ;   LA JUMP
                                 ;
@@ -2116,13 +2120,13 @@
                                 ;
                                 ;   FOR PATCH PROGRAM
                                 ;
-0014A0 14A0                         ORG $14A0
+0014A0 14A0                         ORG $14A0,$
                                 ;
 0014A0 14A0 00               4      NOP
 0014A1 14A1 5F               4      LD  E,A
 0014A2 14A2 FE7F             7      CP  $7F
 0014A4 14A4 C9              10      RET
                                 
-0014FF 14FF                         ORG $14FF
+0014A5 14A5                         DS  $14FF-$
 0014FF 14FF 00                      DB  0
 [EOF:X1IOCS.ASM:SHIFT_JIS]
