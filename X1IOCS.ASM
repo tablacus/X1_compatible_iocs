@@ -706,7 +706,7 @@ X1TURBO:
 	LD	HL,LOC
 	LD	(_LOC+1),HL	;カーソル座標の格納方法が違うので差し替え
 	LD	HL,CSR
-	LD	(_CSR),HL	;カーソル座標の格納方法が違うので差し替え
+	LD	(_CSR+1),HL	;カーソル座標の格納方法が違うので差し替え
 
 	LD	HL,AT_HEX
 	LD	(_HEX+1),HL	;大文字小文字を無視するように差し替え
